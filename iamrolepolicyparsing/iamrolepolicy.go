@@ -78,11 +78,11 @@ func (policy *IamRolePolicy) UnmarshalJSON(data []byte) error {
  *
  * see (stat Statement)isResourceAWildcard() bool in statement.go
  */
-func (policy IamRolePolicy) HasAStatementResourceAWildcard() bool {
+func (policy IamRolePolicy) NoStatementHasWildcardResource() bool {
 	for _, statement := range *policy.PolicyDocument.Statements {
 		if statement.isResourceAWildcard() {
-			return true
+			return false
 		}
 	}
-	return false
+	return true
 }

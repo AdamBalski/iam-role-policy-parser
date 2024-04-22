@@ -26,5 +26,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	println(iamRolePolicy.HasAStatementResourceAWildcard())
+	println(iamRolePolicy.NoStatementHasWildcardResource())
 }

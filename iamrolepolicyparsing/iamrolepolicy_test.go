@@ -232,7 +232,7 @@ func TestIamRolePolicy_UnmarshalWhenCouldNotParsePolicyDocument(t *testing.T) {
 	}
 }
 
-func TestIamRolePolicy_HasAStatementResourceAWildcardIfHas(t *testing.T) {
+func TestIamRolePolicy_NoStatementHasWildcardResourceWhenFalse(t *testing.T) {
 	stringOf := func(s string) *string { return &s }
 	policy := IamRolePolicy{
 		PolicyName: stringOf("123"),
@@ -254,12 +254,12 @@ func TestIamRolePolicy_HasAStatementResourceAWildcardIfHas(t *testing.T) {
 		},
 	}
 
-	if !policy.HasAStatementResourceAWildcard() {
-		t.Errorf("Expected true, got false")
+	if policy.NoStatementHasWildcardResource() {
+		t.Errorf("Expected false, got true")
 	}
 }
 
-func TestIamRolePolicy_HasAStatementResourceAWildcardIfHasNot(t *testing.T) {
+func TestIamRolePolicy_NoStatementHasWildcardResourceWhenTrue(t *testing.T) {
 	stringOf := func(s string) *string { return &s }
 	policy := IamRolePolicy{
 		PolicyName: stringOf("123"),
@@ -281,7 +281,7 @@ func TestIamRolePolicy_HasAStatementResourceAWildcardIfHasNot(t *testing.T) {
 		},
 	}
 
-	if policy.HasAStatementResourceAWildcard() {
-		t.Errorf("Expected false, got true")
+	if !policy.NoStatementHasWildcardResource() {
+		t.Errorf("Expected true, got false")
 	}
 }

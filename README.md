@@ -6,8 +6,9 @@ Works with AWS::IAM::RolePolicy versions "2012-10-17" and "2008-10-17".
 
 ## Function type signature
 The `IamRolePolicy` type and the method below are defined in the `iamrolepolicyparsing` package.
+The method checks whether in any statement in the policy, the Resource value of a role policy statement is a wildcard and returns false if it is.
 ```go
-func (p *IamRolePolicy) HasAStatementResourceAWildcard() bool
+func (p *IamRolePolicy) NoStatementHasWildcardResource() bool
 ```
 ## Code example (excerpt from commandline.go)
 ```go
@@ -18,7 +19,7 @@ if err != nil {
     os.Exit(1)
 }
 
-println(iamRolePolicy.HasAStatementResourceAWildcard())
+println(iamRolePolicy.NoStatementHasWildcardResource())
 ```
 
 ## You can use the method directly in your code, or you can compile and run the program from the command line with a file name as an argument.
