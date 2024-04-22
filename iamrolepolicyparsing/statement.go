@@ -19,14 +19,13 @@ type Statement struct {
 	ConditionMap   interface{} `json:"Condition"`
 }
 
-func stringPtrToString(ptr *string) string {
-	if ptr == nil {
-		return "nil"
-	}
-	return *ptr
-}
-
 func (this *Statement) String() string {
+	stringPtrToString := func(ptr *string) string {
+		if ptr == nil {
+			return "nil"
+		}
+		return *ptr
+	}
 	return fmt.Sprintf(
 		"Statement{Sid: %v, PrincipalValue: %v, Principal: %v, ActionValue: %v, Action: %v, ResourceValue: %v, Resource: %v, Effect: %v, ConditionMap: %v}",
 		stringPtrToString(this.Sid),
