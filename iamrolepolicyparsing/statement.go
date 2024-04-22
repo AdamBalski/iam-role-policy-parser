@@ -56,6 +56,13 @@ func (this *Statement) Equals(other interface{}) bool {
 }
 
 func (stat *Statement) UnmarshalJSON(data []byte) error {
+	// decode.go/line 117
+	// By convention, to approximate the behavior of [Unmarshal] itself,
+	// Unmarshalers implement UnmarshalJSON([]byte("null")) as a no-op.
+	if string(data) == "null" {
+		return nil
+	}
+
 	var statMap map[string]interface{}
 	err := json.Unmarshal(data, &statMap)
 	if err != nil {

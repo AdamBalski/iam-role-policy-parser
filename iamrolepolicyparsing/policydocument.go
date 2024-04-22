@@ -67,12 +67,13 @@ func (this PolicyDocument) Equals(other interface{}) bool {
 	return true
 }
 
-type IamRolePolicy struct {
-	PolicyDocument *PolicyDocument `json:"PolicyDocument"`
-	PolicyName     *string         `json:"PolicyName"`
-}
-
 func (pd *PolicyDocument) UnmarshalJSON(data []byte) error {
+	// decode.go/line 117
+	// By convention, to approximate the behavior of [Unmarshal] itself,
+	// Unmarshalers implement UnmarshalJSON([]byte("null")) as a no-op.
+	if string(data) == "null" {
+		return nil
+	}
 	var m map[string]interface{}
 	if err := json.Unmarshal(data, &m); err != nil {
 		return err

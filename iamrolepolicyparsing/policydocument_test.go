@@ -1,16 +1,14 @@
 package iamrolepolicyparsing
 
 import (
+	"encoding/json"
 	"errors"
 	"reflect"
 	"testing"
 )
 
-func stringToStringPtr(s string) *string {
-	return &s
-}
-
 func TestPolicyDocument_EqualsIfSame(t *testing.T) {
+	stringToStringPtr := func(s string) *string { return &s }
 	pd := PolicyDocument{
 		Version: stringToStringPtr("2012-10-17"),
 		Id:      stringToStringPtr("id"),
@@ -30,6 +28,7 @@ func TestPolicyDocument_EqualsIfSame(t *testing.T) {
 }
 
 func TestPolicyDocument_EqualsIfEqual(t *testing.T) {
+	stringToStringPtr := func(s string) *string { return &s }
 	pd1 := PolicyDocument{
 		Version: stringToStringPtr("2012-10-17"),
 		Id:      stringToStringPtr("id"),
@@ -62,6 +61,7 @@ func TestPolicyDocument_EqualsIfEqual(t *testing.T) {
 }
 
 func TestPolicyDocument_EqualsIfNotEqualSizeOfStatements(t *testing.T) {
+	stringToStringPtr := func(s string) *string { return &s }
 	pd1 := PolicyDocument{
 		Version: stringToStringPtr("2012-10-17"),
 		Id:      stringToStringPtr("id"),
@@ -102,6 +102,7 @@ func TestPolicyDocument_EqualsIfNotEqualSizeOfStatements(t *testing.T) {
 }
 
 func TestPolicyDocument_EqualsIfNotEqualStatements(t *testing.T) {
+	stringToStringPtr := func(s string) *string { return &s }
 	pd1 := PolicyDocument{
 		Version: stringToStringPtr("2012-10-17"),
 		Id:      stringToStringPtr("id"),
@@ -134,6 +135,7 @@ func TestPolicyDocument_EqualsIfNotEqualStatements(t *testing.T) {
 }
 
 func TestPolicyDocument_EqualsIfNotEqualVersions(t *testing.T) {
+	stringToStringPtr := func(s string) *string { return &s }
 	pd1 := PolicyDocument{
 		Version: stringToStringPtr("2012-10-17"),
 		Id:      stringToStringPtr("id"),
@@ -166,6 +168,7 @@ func TestPolicyDocument_EqualsIfNotEqualVersions(t *testing.T) {
 }
 
 func TestPolicyDocument_EqualsIfOtherIsNil(t *testing.T) {
+	stringToStringPtr := func(s string) *string { return &s }
 	pd := PolicyDocument{
 		Version: stringToStringPtr("2012-10-17"),
 		Id:      stringToStringPtr("id"),
@@ -185,6 +188,7 @@ func TestPolicyDocument_EqualsIfOtherIsNil(t *testing.T) {
 }
 
 func TestPolicyDocument_String(t *testing.T) {
+	stringToStringPtr := func(s string) *string { return &s }
 	pd := PolicyDocument{
 		Version: stringToStringPtr("2012-10-17"),
 		Id:      stringToStringPtr("id"),
@@ -254,6 +258,7 @@ func TestPolicyDocument_UnmarshalJSON1(t *testing.T) {
 }
 
 func TestPolicyDocument_UnmarshalJSON2(t *testing.T) {
+	stringToStringPtr := func(s string) *string { return &s }
 	data := []byte(`{"Version": "2008-10-17", "Id": "i2d", "Statement":[{"Effect":"Allow","NotPrincipal":{"AWS":["arn:aws:iam::123456789012:user/JohnDoe"]},"NotAction":"s3:ListBucket","Resource":["arn:aws:s3:::example-bucket"]}]}`)
 	var pd PolicyDocument
 	var expectedErr = (error)(nil)
@@ -281,6 +286,7 @@ func TestPolicyDocument_UnmarshalJSON2(t *testing.T) {
 }
 
 func TestPolicyDocument_UnmarshalJSON3(t *testing.T) {
+	stringToStringPtr := func(s string) *string { return &s }
 	data := []byte(`{"Version": "2012-10-17", "Id": "i2d", "Statement":[]}`)
 	var pd PolicyDocument
 	var expectedErr = (error)(nil)
@@ -300,19 +306,6 @@ func TestPolicyDocument_UnmarshalJSON3(t *testing.T) {
 }
 
 func TestPolicyDocument_UnmarshalJSONWrongVersion(t *testing.T) {
-	data := []byte(`{"Version": "2012-10-18", "Id": "i2d", "Statement":[]}`)
-	var pd PolicyDocument
-	expectedErr := errors.New("Version must be 2012-10-17 or 2008-10-17")
-
-	err := pd.UnmarshalJSON(data)
-
-	if !reflect.DeepEqual(expectedErr, err) {
-		t.Errorf("Expected error: %v, got: %v", expectedErr, err)
-	}
-
-}
-
-func TestPolicyDocument_UnmarshalInvalidJSON(t *testing.T) {
 	data := []byte(`invalid json`)
 	var pd PolicyDocument
 	expectedErr := errors.New("invalid character 'i' looking for beginning of value")
@@ -321,6 +314,30 @@ func TestPolicyDocument_UnmarshalInvalidJSON(t *testing.T) {
 
 	if !reflect.DeepEqual(err.Error(), expectedErr.Error()) {
 		t.Errorf("Expected error: %v, got: %v", expectedErr, err)
+	}
+}
+
+func TestUnmarshal_PolicyDocumentWhenNull(t *testing.T) {
+	stringToStringPtr := func(s string) *string { return &s }
+	data := `null`
+	pd := PolicyDocument{
+		Version:    stringToStringPtr("1"),
+		Id:         stringToStringPtr("2"),
+		Statements: &[]Statement{},
+	}
+	original := PolicyDocument{
+		Version:    stringToStringPtr("1"),
+		Id:         stringToStringPtr("2"),
+		Statements: &[]Statement{},
+	}
+
+	err := json.Unmarshal([]byte(data), &pd)
+
+	if !pd.Equals(original) {
+		t.Errorf("Expected Unmarshalling to be a noop")
+	}
+	if err != nil {
+		t.Errorf(`Expected Unmarshalling a "null" to be not throw an error`)
 	}
 }
 

@@ -1,6 +1,7 @@
 package iamrolepolicyparsing
 
 import (
+	"encoding/json"
 	"errors"
 	"reflect"
 	"testing"
@@ -396,5 +397,37 @@ func TestStatement_UnmarshalMissingResourceOrNotResource(t *testing.T) {
 
 	if !reflect.DeepEqual(err, expectedErr) {
 		t.Errorf("Expected error: %v, got: %v", expectedErr, err)
+	}
+}
+
+func TestStatement_UnmarshalWhenNull(t *testing.T) {
+	stat := Statement{
+		Sid:            stringOf("123"),
+		Effect:         stringOf("Allow"),
+		Principal:      true,
+		Action:         true,
+		Resource:       true,
+		PrincipalValue: map[string]interface{}{"AWS": []string{"arn:aws:iam::123456789012:user/JohnDoe"}},
+		ActionValue:    []interface{}{"s3:ListBucket"},
+		ResourceValue:  []interface{}{"arn:aws:s3:::example-bucket"},
+	}
+	original := Statement{
+		Sid:            stringOf("123"),
+		Effect:         stringOf("Allow"),
+		Principal:      true,
+		Action:         true,
+		Resource:       true,
+		PrincipalValue: map[string]interface{}{"AWS": []string{"arn:aws:iam::123456789012:user/JohnDoe"}},
+		ActionValue:    []interface{}{"s3:ListBucket"},
+		ResourceValue:  []interface{}{"arn:aws:s3:::example-bucket"},
+	}
+	data := `null`
+	err := json.Unmarshal([]byte(data), &stat)
+
+	if !stat.Equals(original) {
+		t.Errorf("Expected Unmarshalling to be a noop")
+	}
+	if err != nil {
+		t.Errorf(`Expected Unmarshalling a "null" to be not throw an error`)
 	}
 }
