@@ -1,11 +1,11 @@
 # AWS::IAM::RolePolicy parser
-This project provides an easy way to check whether the Resource value of an role policy statement is a wildcard.
+This project provides an easy way to check whether the Resource value of a role policy statement is a wildcard.
 
-Works with AWS::IAM::RolePolicy versions "2012-10-17 and "2008-10-17".
+Works with AWS::IAM::RolePolicy versions "2012-10-17" and "2008-10-17".
 #### Note: This is done as a part of a coding challenge for a job application of an undisclosed company
 
 ## Function type signature
-The function as well as the type `IamRolePolicy` reside in the `iamrolepolicyparsing` package.
+The `IamRolePolicy` type and the method below are defined in the `iamrolepolicyparsing` package.
 ```go
 func (p *IamRolePolicy) HasAStatementResourceAWildcard() bool
 ```
@@ -21,7 +21,7 @@ if err != nil {
 println(iamRolePolicy.HasAStatementResourceAWildcard())
 ```
 
-## You can use the method as is or compile the program and run it with a commandline argument that takes a file name
+## You can use the method directly in your code, or you can compile and run the program from the command line with a file name as an argument.
 ### Dependencies:
 - Go 1.22
 ### To compile:
@@ -32,12 +32,12 @@ go build main
 ```bash
 ./main json-filename
 ```
-### There are example json files in the `./example-jsons` directory
+### There are example JSON files in the `./example-jsons` directory
 ### Example usage:
 ![showcase](./readme-imgs/showcase.png)
 
 ## Disclaimers
-The level of detail in which the jsons are verified is limited and I have not verified the following structures:
+The JSON verification in this project is limited and does not include the following structures:
 * action_string
 * sid_string
 * principal_id_string
