@@ -15,6 +15,8 @@ import (
  * If "Action" and "NotAction" were absent, the Action property is meaningless
  * Same for "Resource" and "NotResource", Resource and ResourceValue
  * and for "Principal" and "NotPrincipal", Principal and PrincipalValue
+ *
+ * for grammar see https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_grammar.html
  */
 type Statement struct {
 	Sid            *string `json:"Sid"`
@@ -64,36 +66,7 @@ func (this *Statement) Equals(other interface{}) bool {
 
 }
 
-func (stat *Statement) UnmarshalJSON(data []byte) error {
-	// decode.go/line 117
-	// By convention, to approximate the behavior of [Unmarshal] itself,
-	// Unmarshalers implement UnmarshalJSON([]byte("null")) as a no-op.
-	if string(data) == "null" {
-		return nil
-	}
-
-	var statMap map[string]interface{}
-	err := json.Unmarshal(data, &statMap)
-	if err != nil {
-		return err
-	}
-
-	// Ensure no unwanted properties exist in data
-	for key, _ := range statMap {
-		if key != "Sid" &&
-			key != "Principal" &&
-			key != "Action" &&
-			key != "Resource" &&
-			key != "NotAction" &&
-			key != "Effect" &&
-			key != "Condition" &&
-			key != "NotResource" &&
-			key != "NotPrincipal" {
-			return errors.New(fmt.Sprintf("unknown key: %s", key))
-		}
-	}
-
-	// Sid block parsing
+func parseSid(statMap map[string]interface{}, stat *Statement) error {
 	if statMap["Sid"] != nil {
 		if sid, ok := statMap["Sid"].(string); !ok {
 			return errors.New("sid is a non-string")
@@ -101,8 +74,10 @@ func (stat *Statement) UnmarshalJSON(data []byte) error {
 			stat.Sid = &sid
 		}
 	}
+	return nil
+}
 
-	// Effect block
+func parseEffect(statMap map[string]interface{}, stat *Statement) error {
 	if effect, ok := statMap["Effect"].(string); !ok {
 		return errors.New("effect is absent or a non-string")
 	} else {
@@ -111,8 +86,10 @@ func (stat *Statement) UnmarshalJSON(data []byte) error {
 		}
 		stat.Effect = &effect
 	}
+	return nil
+}
 
-	// Principal block
+func parsePrincipal(statMap map[string]interface{}, stat *Statement) error {
 	if statMap["Principal"] != nil {
 		stat.PrincipalValue = statMap["Principal"]
 		stat.Principal = true
@@ -146,8 +123,10 @@ func (stat *Statement) UnmarshalJSON(data []byte) error {
 	} else if stat.PrincipalValue != nil {
 		return errors.New("principal value should be '*' or a map")
 	}
+	return nil
+}
 
-	// Action Block
+func parseAction(statMap map[string]interface{}, stat *Statement) error {
 	if statMap["Action"] != nil {
 		stat.ActionValue = statMap["Action"]
 		stat.Action = true
@@ -173,8 +152,10 @@ func (stat *Statement) UnmarshalJSON(data []byte) error {
 	default:
 		return errors.New("action value should either be a string or a []string")
 	}
+	return nil
+}
 
-	// Resource block
+func parseResource(statMap map[string]interface{}, stat *Statement) error {
 	if statMap["Resource"] != nil {
 		stat.ResourceValue = statMap["Resource"]
 		stat.Resource = true
@@ -200,9 +181,62 @@ func (stat *Statement) UnmarshalJSON(data []byte) error {
 	default:
 		return errors.New("resource value should either be a string or a []string")
 	}
+	return nil
+}
 
-	// Condition block
+func parseCondition(statMap map[string]interface{}, stat *Statement) {
 	stat.ConditionMap = statMap["Condition"]
+}
+
+// UnmarshalJSON function
+
+func (stat *Statement) UnmarshalJSON(data []byte) error {
+	// reference: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_grammar.html
+
+	// decode.go/line 117
+	// By convention, to approximate the behavior of [Unmarshal] itself,
+	// Unmarshalers implement UnmarshalJSON([]byte("null")) as a no-op.
+	if string(data) == "null" {
+		return nil
+	}
+
+	var statMap map[string]interface{}
+	err := json.Unmarshal(data, &statMap)
+	if err != nil {
+		return err
+	}
+
+	// Ensure no unwanted properties exist in data
+	for key, _ := range statMap {
+		if key != "Sid" &&
+			key != "Principal" &&
+			key != "Action" &&
+			key != "Resource" &&
+			key != "NotAction" &&
+			key != "Effect" &&
+			key != "Condition" &&
+			key != "NotResource" &&
+			key != "NotPrincipal" {
+			return errors.New(fmt.Sprintf("unknown key: %s", key))
+		}
+	}
+
+	if err := parseSid(statMap, stat); err != nil {
+		return err
+	}
+	if err := parseEffect(statMap, stat); err != nil {
+		return err
+	}
+	if err := parsePrincipal(statMap, stat); err != nil {
+		return err
+	}
+	if err := parseAction(statMap, stat); err != nil {
+		return err
+	}
+	if err := parseResource(statMap, stat); err != nil {
+		return err
+	}
+	parseCondition(statMap, stat)
 
 	return nil
 }

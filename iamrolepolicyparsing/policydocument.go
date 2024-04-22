@@ -9,6 +9,9 @@ import (
 
 /**
  * PolicyDocument struct represents the policy document in an IAM role policy.
+ *
+ * for grammar see https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_grammar.html
+ * see statement.go for the Statement struct
  */
 type PolicyDocument struct {
 	Version    *string      `json:"Version"`
@@ -17,36 +20,24 @@ type PolicyDocument struct {
 }
 
 func (pd *PolicyDocument) String() string {
-	mapStatementsToStrings := func(statements []Statement) []string {
-		if statements == nil {
-			return nil
+	var statements []string
+	if pd.Statements != nil {
+		for _, statement := range *pd.Statements {
+			statements = append(statements, statement.String())
 		}
-		result := make([]string, len(statements))
-		for i, statement := range statements {
-			result[i] = statement.String()
-		}
-		return result
 	}
+
 	stringPtrToString := func(ptr *string) string {
 		if ptr == nil {
 			return "nil"
 		}
 		return *ptr
 	}
-
-	if statementsArray := mapStatementsToStrings(*pd.Statements); statementsArray == nil {
-		return fmt.Sprintf(
-			"PolicyDocument{Version: %s, Id: %s, Statements: %v}",
-			stringPtrToString(pd.Version),
-			stringPtrToString(pd.Id),
-			"nil",
-		)
-	}
 	return fmt.Sprintf(
 		"PolicyDocument{Version: %s, Id: %s, Statements: %v}",
 		stringPtrToString(pd.Version),
 		stringPtrToString(pd.Id),
-		mapStatementsToStrings(*pd.Statements),
+		statements,
 	)
 }
 
@@ -55,7 +46,7 @@ func (this PolicyDocument) Equals(other interface{}) bool {
 	if !ok || !reflect.DeepEqual(this.Version, that.Version) || !reflect.DeepEqual(this.Id, that.Id) {
 		return false
 	}
-	if this.Statements == nil {
+	if this.Statements == nil || that.Statements == nil {
 		// checks types of NILs
 		return this.Statements == that.Statements
 	}
@@ -77,6 +68,7 @@ func (pd *PolicyDocument) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
 		return nil
 	}
+
 	var m map[string]interface{}
 	if err := json.Unmarshal(data, &m); err != nil {
 		return err
