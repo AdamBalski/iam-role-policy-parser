@@ -1,3 +1,3 @@
-module iam-rolepolicy-parser
+module main
 
 go 1.22

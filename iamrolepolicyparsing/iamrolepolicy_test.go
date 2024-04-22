@@ -231,3 +231,57 @@ func TestUnmarshal_IamRolePolicyWhenCouldNotParsePolicyDocument(t *testing.T) {
 		t.Errorf("Expected error: %s, got: %s", expectedErr.Error(), err.Error())
 	}
 }
+
+func TestIamRolePolicy_HasAStatementResourceAWildcardIfHas(t *testing.T) {
+	stringToStringPtr := func(s string) *string { return &s }
+	policy := IamRolePolicy{
+		PolicyName: stringToStringPtr("123"),
+		PolicyDocument: &PolicyDocument{
+			Version: stringToStringPtr("1"),
+			Id:      stringToStringPtr("2"),
+			Statements: &[]Statement{
+				{
+					Sid:            stringOf("123"),
+					Effect:         stringOf("Allow"),
+					Principal:      true,
+					Action:         true,
+					Resource:       true,
+					PrincipalValue: map[string]interface{}{"AWS": []string{"arn:aws:iam::123456789012:user/JohnDoe"}},
+					ActionValue:    []interface{}{"s3:ListBucket"},
+					ResourceValue:  interface{}("*"),
+				},
+			},
+		},
+	}
+
+	if !policy.HasAStatementResourceAWildcard() {
+		t.Errorf("Expected true, got false")
+	}
+}
+
+func TestIamRolePolicy_HasAStatementResourceAWildcardIfHasNot(t *testing.T) {
+	stringToStringPtr := func(s string) *string { return &s }
+	policy := IamRolePolicy{
+		PolicyName: stringToStringPtr("123"),
+		PolicyDocument: &PolicyDocument{
+			Version: stringToStringPtr("1"),
+			Id:      stringToStringPtr("2"),
+			Statements: &[]Statement{
+				{
+					Sid:            stringOf("123"),
+					Effect:         stringOf("Allow"),
+					Principal:      true,
+					Action:         true,
+					Resource:       true,
+					PrincipalValue: map[string]interface{}{"AWS": []string{"arn:aws:iam::123456789012:user/JohnDoe"}},
+					ActionValue:    []interface{}{"s3:ListBucket"},
+					ResourceValue:  interface{}("420"),
+				},
+			},
+		},
+	}
+
+	if policy.HasAStatementResourceAWildcard() {
+		t.Errorf("Expected false, got true")
+	}
+}

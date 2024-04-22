@@ -7,6 +7,15 @@ import (
 	"reflect"
 )
 
+/**
+ * Statement struct represents a single statement in an IAM policy.
+ *
+ * If the JSON contained "Action" key or "NotAction", then ActionValue will be set to the value of the key.
+ * Action is true if the key was "Action" and false if it was "NotAction".
+ * If "Action" and "NotAction" were absent, the Action property is meaningless
+ * Same for "Resource" and "NotResource", Resource and ResourceValue
+ * and for "Principal" and "NotPrincipal", Principal and PrincipalValue
+ */
 type Statement struct {
 	Sid            *string `json:"Sid"`
 	PrincipalValue interface{}
@@ -196,4 +205,18 @@ func (stat *Statement) UnmarshalJSON(data []byte) error {
 	stat.ConditionMap = statMap["Condition"]
 
 	return nil
+}
+
+func (stat Statement) isResourceAWildcard() bool {
+	// if NotResource was present instead of Resource
+	if !stat.Resource {
+		return false
+	}
+
+	if stat.Resource {
+		if resourceString, ok := stat.ResourceValue.(string); ok {
+			return resourceString == "*"
+		}
+	}
+	return false
 }

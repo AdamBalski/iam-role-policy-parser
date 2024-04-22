@@ -7,6 +7,9 @@ import (
 	"reflect"
 )
 
+/**
+ * PolicyDocument struct represents the policy document in an IAM role policy.
+ */
 type PolicyDocument struct {
 	Version    *string      `json:"Version"`
 	Id         *string      `json:"Id"`

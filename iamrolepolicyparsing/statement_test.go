@@ -431,3 +431,82 @@ func TestStatement_UnmarshalWhenNull(t *testing.T) {
 		t.Errorf(`Expected Unmarshalling a "null" to be not throw an error`)
 	}
 }
+
+func TestStatement_IsResourceAWildcardIfTrue(t *testing.T) {
+	stat := Statement{
+		Sid:            stringOf("123"),
+		Effect:         stringOf("Allow"),
+		Principal:      true,
+		Action:         true,
+		Resource:       true,
+		PrincipalValue: map[string]interface{}{"AWS": []string{"arn:aws:iam::123456789012:user/JohnDoe"}},
+		ActionValue:    []interface{}{"s3:ListBucket"},
+		ResourceValue:  interface{}("*"),
+	}
+	if !stat.isResourceAWildcard() {
+		t.Errorf("Expected: true, got: false")
+	}
+}
+
+func TestStatement_IsResourceAWildcardIfItsAnArray(t *testing.T) {
+	stat := Statement{
+		Sid:            stringOf("123"),
+		Effect:         stringOf("Allow"),
+		Principal:      true,
+		Action:         true,
+		Resource:       true,
+		PrincipalValue: map[string]interface{}{"AWS": []string{"arn:aws:iam::123456789012:user/JohnDoe"}},
+		ActionValue:    []interface{}{"s3:ListBucket"},
+		ResourceValue:  []interface{}{"*"},
+	}
+	if stat.isResourceAWildcard() {
+		t.Errorf("Expected: false, got: true")
+	}
+}
+
+func TestStatement_IsResourceAWildcardIfNot(t *testing.T) {
+	stat := Statement{
+		Sid:            stringOf("123"),
+		Effect:         stringOf("Allow"),
+		Principal:      true,
+		Action:         true,
+		Resource:       true,
+		PrincipalValue: map[string]interface{}{"AWS": []string{"arn:aws:iam::123456789012:user/JohnDoe"}},
+		ActionValue:    []interface{}{"s3:ListBucket"},
+		ResourceValue:  interface{}("lol"),
+	}
+	if stat.isResourceAWildcard() {
+		t.Errorf("Expected: false, got: true")
+	}
+}
+
+func TestStatement_IsResourceAWildcardIfDoesNotExist(t *testing.T) {
+	stat := Statement{
+		Sid:            stringOf("123"),
+		Effect:         stringOf("Allow"),
+		Principal:      true,
+		Action:         true,
+		Resource:       false,
+		PrincipalValue: map[string]interface{}{"AWS": []string{"arn:aws:iam::123456789012:user/JohnDoe"}},
+		ActionValue:    []interface{}{"s3:ListBucket"},
+	}
+	if stat.isResourceAWildcard() {
+		t.Errorf("Expected: false, got: true")
+	}
+}
+
+func TestStatement_IsResourceAWildcardIfNotResourceExists(t *testing.T) {
+	stat := Statement{
+		Sid:            stringOf("123"),
+		Effect:         stringOf("Allow"),
+		Principal:      true,
+		Action:         true,
+		Resource:       false,
+		PrincipalValue: map[string]interface{}{"AWS": []string{"arn:aws:iam::123456789012:user/JohnDoe"}},
+		ActionValue:    []interface{}{"s3:ListBucket"},
+		ResourceValue:  []interface{}{"*"},
+	}
+	if stat.isResourceAWildcard() {
+		t.Errorf("Expected: false, got: true")
+	}
+}

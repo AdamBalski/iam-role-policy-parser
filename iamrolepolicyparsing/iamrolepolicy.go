@@ -6,6 +6,9 @@ import (
 	"fmt"
 )
 
+/**
+ * IamRolePolicy struct represents a policy in an IAM role.
+ */
 type IamRolePolicy struct {
 	PolicyDocument *PolicyDocument `json:"PolicyDocument"`
 	PolicyName     *string         `json:"PolicyName"`
@@ -28,14 +31,12 @@ func (policy *IamRolePolicy) UnmarshalJSON(data []byte) error {
 	// decode.go/line 117
 	// By convention, to approximate the behavior of [Unmarshal] itself,
 	// Unmarshalers implement UnmarshalJSON([]byte("null")) as a no-op.
-	// todo test all 3
 	if string(data) == "null" {
 		return nil
 	}
 
 	var statMap map[string]interface{}
 	err := json.Unmarshal(data, &statMap)
-	// todo test
 	if err != nil {
 		return err
 	}
@@ -66,6 +67,14 @@ func (policy *IamRolePolicy) UnmarshalJSON(data []byte) error {
 		return errors.New("PolicyName is required")
 	}
 
-	// todo test name not a string
 	return nil
+}
+
+func (policy IamRolePolicy) HasAStatementResourceAWildcard() bool {
+	for _, statement := range *policy.PolicyDocument.Statements {
+		if statement.isResourceAWildcard() {
+			return true
+		}
+	}
+	return false
 }
